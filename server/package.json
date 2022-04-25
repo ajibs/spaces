@@ -15,9 +15,9 @@
   "scripts": {
     "hack": "echo hello",
     "build": "tsc -p .",
-    "start": "node src/index.js",
+    "local": "npm run build && node src/index.js",
     "dev": "ts-node src/index.ts",
-    "prod": "pm2 start src/index.ts"
+    "start": "pm2 start src/index.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",

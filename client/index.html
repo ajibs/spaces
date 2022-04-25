@@ -1,0 +1,160 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="author" content="colorlib.com">
+    <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="css/main.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="s01">
+      <form>
+        <fieldset>
+          <legend>Discover Amazing Spaces</legend>
+        </fieldset>
+        <div class="inner-form">
+          <div class="input-field first-wrap">
+            <input id="name" type="text" placeholder="crypto" required/>
+          </div>
+          <div class="input-field second-wrap">
+            <input id="user" type="text" placeholder="VitalikButerin" required/>
+          </div>
+          <div class="input-field third-wrap">
+            <button id="search" class="btn-search" type="button" onclick="executeSearch()">Search</button>
+          </div>
+        </div>        
+        <div class="d-flex justify-content-center">                      
+          <div id="loader" class="spinner-border text-warning collapse"></div>
+        </div>
+        <div id="searchResponse" class="collapse">
+        </div>
+      </form>
+    </div>
+  </body><!-- This templates was made by Colorlib (https://colorlib.com) -->
+</html>
+
+<script>
+  function executeSearch() {
+    const loader = document.getElementById("loader");
+    const searchResponse = document.getElementById("searchResponse");
+    let name = document.getElementById('name').value;
+    let user = document.getElementById('user').value;
+    if (name == "" || user == "") {
+      return;
+    }
+
+    if (loader.classList.contains('show')) {
+      loader.classList.remove('show');
+    } else {
+      loader.classList.add('show');
+      searchResponse.classList.remove('show');
+    }
+
+    (async () => {
+      const timeoutInMilliseconds = 3000; 
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeoutInMilliseconds);
+
+      // TODO: replace url and request body
+      // name = "crypto";
+      // user = "truzact";
+      try {
+        const rawRequest = await fetch('http://localhost:9000/spaces', {
+          method: 'POST',
+          timeout: timeoutInMilliseconds,
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name, 
+            user,
+          })
+        });
+        clearTimeout(id);
+        const spaces = await rawRequest.json();    
+        console.log(spaces)
+        if (spaces.data && spaces.data.length > 0) {
+          createCards(spaces.data, user, name);
+          loader.classList.remove('show');
+          searchResponse.classList.add('show');
+        }
+      } catch (error) {
+        console.log('error here', error);
+        loader.classList.remove('show');
+      }
+    })();
+  }
+
+  function createCards(spaces, user, name) {
+    var searchResponse = document.querySelector('#searchResponse');
+    searchResponse.textContent = '';
+    var fragment = new DocumentFragment();
+
+    spaces.forEach(function (space) {
+      if (space.id == "" || space.title == "" || space.scheduled_start == "" || space.state != "scheduled") {
+        return;
+      }
+
+      const formattedDate = new Date(space.scheduled_start);
+      let divCard = document.createElement('div');
+      divCard.classList.add('card');
+      divCard.classList.add("text-center");
+      divCard.setAttribute("style", "margin-bottom: 2rem;");
+      divCard.setAttribute("style", "margin-top: 2rem;");
+
+      let divCardBody = document.createElement('div');
+      divCardBody.classList.add('card-body');
+
+      let header = document.createElement('div');
+      header.classList.add('card-header');
+      let headerText = document.createTextNode(name);
+      header.appendChild(headerText);
+
+      let title = document.createElement('h5');
+      title.classList.add('card-title');
+      let titleText = document.createTextNode(space.title);
+      title.appendChild(titleText);
+
+      let paragraph = document.createElement('p');
+      paragraph.classList.add('card-text');
+      let paragraphText = document.createTextNode(`Creator/Host: ${user}`);
+      paragraph.appendChild(paragraphText);
+
+      let link = document.createElement('a');
+      link.classList.add('btn');
+      link.classList.add('btn-primary');
+      link.setAttribute('href', `https://twitter.com/i/spaces/${space.id}`);
+      link.setAttribute('target', "_blank");
+      let linkText = document.createTextNode("View Space");
+      link.appendChild(linkText);
+
+      let footer = document.createElement('div');
+      footer.classList.add('card-footer');
+      footer.classList.add('text-muted');
+      let footerText = document.createTextNode(`Scheduled Start: ${formattedDate}`);
+      footer.appendChild(footerText);
+      
+      // build card body
+      divCardBody.appendChild(title);
+      divCardBody.appendChild(paragraph);
+      divCardBody.appendChild(link);
+
+      // build card
+      divCard.appendChild(header);
+      divCard.appendChild(divCardBody);
+      divCard.appendChild(footer);
+
+      // build all cards
+      fragment.appendChild(divCard);
+    });
+
+    searchResponse.appendChild(fragment);
+  }
+</script>

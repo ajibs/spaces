@@ -9,14 +9,14 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
-    "pm2": "^5.2.0",
+    "nodemon": "^2.0.15",
     "twitter-api-sdk": "^1.0.2"
   },
   "scripts": {
     "build": "tsc -p .",
     "local": "npm run build && node src/index.js",
     "dev": "ts-node src/index.ts",
-    "start": "pm2 start src/index.ts"
+    "start": "nodemon start src/index.js"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
